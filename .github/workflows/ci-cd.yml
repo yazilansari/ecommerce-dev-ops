@@ -90,7 +90,7 @@ jobs:
         context: ./products-service
         push: true
         tags: |
-          yazilansari/products-servicelatest
+          yazilansari/products-service:latest
           yazilansari/products-service:${{ github.sha }}
 
     - name: Update deployment image tags
