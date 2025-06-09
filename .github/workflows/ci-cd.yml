@@ -96,10 +96,10 @@ jobs:
     - name: Update deployment image tags
       run: |
         sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
-        sed -i "s|yazilansari/auth-image:.*|yazilansari/auth-image:${{ github.sha }}|" k8s/auth-deployment.yaml
-        sed -i "s|yazilansari/orders-image:.*|yazilansari/orders-image:${{ github.sha }}|" k8s/orders-deployment.yaml
-        sed -i "s|yazilansari/payment-image:.*|yazilansari/payment-image:${{ github.sha }}|" k8s/payment-deployment.yaml
-        sed -i "s|yazilansari/products-image:.*|yazilansari/products-image:${{ github.sha }}|" k8s/products-deployment.yaml
+        sed -i "s|yazilansari/auth-service:.*|yazilansari/auth-service:${{ github.sha }}|" k8s/auth-deployment.yaml
+        sed -i "s|yazilansari/orders-service:.*|yazilansari/orders-service:${{ github.sha }}|" k8s/orders-deployment.yaml
+        sed -i "s|yazilansari/payment-service:.*|yazilansari/payment-service:${{ github.sha }}|" k8s/payment-deployment.yaml
+        sed -i "s|yazilansari/products-service:.*|yazilansari/products-service:${{ github.sha }}|" k8s/products-deployment.yaml
         cat k8s/nextjs-deployment.yaml
         cat k8s/auth-deployment.yaml
         cat k8s/orders-deployment.yaml
