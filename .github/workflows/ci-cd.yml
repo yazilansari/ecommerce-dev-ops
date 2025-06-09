@@ -54,7 +54,7 @@ jobs:
         context: ./nextjs-app
         push: true
         tags: |
-          yazilansari/nextjs-app:latest
+          #yazilansari/nextjs-app:latest
           yazilansari/nextjs-app:${{ github.sha }}
 
     - name: Build and push auth-service
@@ -63,7 +63,7 @@ jobs:
         context: ./auth-service
         push: true
         tags: |
-          yazilansari/auth-service:latest
+          #yazilansari/auth-service:latest
           yazilansari/auth-service:${{ github.sha }}
 
     - name: Build and push orders-service
@@ -72,7 +72,7 @@ jobs:
         context: ./orders-service
         push: true
         tags: |
-          yazilansari/orders-service:latest
+          #yazilansari/orders-service:latest
           yazilansari/orders-service:${{ github.sha }}
 
     - name: Build and push payment-service
@@ -81,7 +81,7 @@ jobs:
         context: ./payment-service
         push: true
         tags: |
-          yazilansari/payment-service:latest
+          #yazilansari/payment-service:latest
           yazilansari/payment-service:${{ github.sha }}
 
     - name: Build and push products-service
@@ -90,21 +90,34 @@ jobs:
         context: ./products-service
         push: true
         tags: |
-          yazilansari/products-servicelatest
+          #yazilansari/products-servicelatest
           yazilansari/products-service:${{ github.sha }}
+
+    - name: Update deployment image tags
+      run: |
+        sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
+        sed -i "s|yazilansari/auth-image:.*|yazilansari/auth-image:${{ github.sha }}|" k8s/auth-deployment.yaml
+        sed -i "s|yazilansari/orders-image:.*|yazilansari/orders-image:${{ github.sha }}|" k8s/orders-deployment.yaml
+        sed -i "s|yazilansari/payment-image:.*|yazilansari/payment-image:${{ github.sha }}|" k8s/payment-deployment.yaml
+        sed -i "s|yazilansari/products-image:.*|yazilansari/products-image:${{ github.sha }}|" k8s/products-deployment.yaml
+        cat k8s/nextjs-deployment.yaml
+        cat k8s/auth-deployment.yaml
+        cat k8s/orders-deployment.yaml
+        cat k8s/payment-deployment.yaml
+        cat k8s/products-deployment.yaml
 
     - name: Set up Minikube
       uses: medyagh/setup-minikube@v0.0.16
       with:
-        minikube-version: 'latest'
+        minikube-version: '1.36.0'
         driver: docker
 
     - name: Deploy to Minikube
       run: |
         minikube start
         kubectl apply -f k8s/
-        kubectl rollout status deployment/nextjs-deployment
-        kubectl rollout status deployment/auth-deployment
-        kubectl rollout status deployment/orders-deployment
-        kubectl rollout status deployment/payment-deployment
-        kubectl rollout status deployment/products-deployment
+        kubectl rollout status deployment/nextjs-deployment --timeout=600s
+        kubectl rollout status deployment/auth-deployment --timeout=600s
+        kubectl rollout status deployment/orders-deployment --timeout=600s
+        kubectl rollout status deployment/payment-deployment --timeout=600s
+        kubectl rollout status deployment/products-deployment --timeout=600s
