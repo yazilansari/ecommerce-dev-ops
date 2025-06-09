@@ -113,7 +113,11 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         source: "k8s/*"
-        target: "/home/${{ secrets.SSH_USER }}/Desktop/ecommerce"
+        target: "/home/${{ secrets.SSH_USER }}/Desktop/ecommerce-ci-cd"
+        port: 22
+        timeout: 60s
+        command_timeout: 600s
+        overwrite: true
 
     - name: Deploy to Local Minikube
       uses: appleboy/ssh-action@v1.0.3
@@ -123,7 +127,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           minikube start
-          kubectl apply -f /home/${{ secrets.SSH_USER }}/Desktop/ecommerce/k8s/
+          kubectl apply -f /home/${{ secrets.SSH_USER }}/Desktop/ecommerce-ci-cd/k8s/
           kubectl rollout status deployment/nextjs-deployment --timeout=600s
           kubectl rollout status deployment/auth-deployment --timeout=600s
           kubectl rollout status deployment/orders-deployment --timeout=600s
