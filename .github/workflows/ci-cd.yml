@@ -106,18 +106,26 @@ jobs:
         cat k8s/payment-deployment.yaml
         cat k8s/products-deployment.yaml
 
-    - name: Set up Minikube
-      uses: medyagh/setup-minikube@v0.0.16
+    - name: Copy manifests to local machine
+      uses: appleboy/scp-action@v0.1.4
       with:
-        minikube-version: '1.36.0'
-        driver: docker
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "k8s/*"
+        target: "/home/${{ secrets.SSH_USER }}/Desktop/ecommerce"
 
-    - name: Deploy to Minikube
-      run: |
-        minikube start
-        kubectl apply -f k8s/
-        kubectl rollout status deployment/nextjs-deployment --timeout=600s
-        kubectl rollout status deployment/auth-deployment --timeout=600s
-        kubectl rollout status deployment/orders-deployment --timeout=600s
-        kubectl rollout status deployment/payment-deployment --timeout=600s
-        kubectl rollout status deployment/products-deployment --timeout=600s
+    - name: Deploy to Local Minikube
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          minikube start
+          kubectl apply -f /home/${{ secrets.SSH_USER }}/Desktop/ecommerce/k8s/
+          kubectl rollout status deployment/nextjs-deployment --timeout=600s
+          kubectl rollout status deployment/auth-deployment --timeout=600s
+          kubectl rollout status deployment/orders-deployment --timeout=600s
+          kubectl rollout status deployment/payment-deployment --timeout=600s
+          kubectl rollout status deployment/products-deployment --timeout=600s
