@@ -54,7 +54,7 @@ jobs:
         context: ./nextjs-app
         push: true
         tags: |
-          #yazilansari/nextjs-app:latest
+          yazilansari/nextjs-app:latest
           yazilansari/nextjs-app:${{ github.sha }}
 
     - name: Build and push auth-service
@@ -63,7 +63,7 @@ jobs:
         context: ./auth-service
         push: true
         tags: |
-          #yazilansari/auth-service:latest
+          yazilansari/auth-service:latest
           yazilansari/auth-service:${{ github.sha }}
 
     - name: Build and push orders-service
@@ -72,7 +72,7 @@ jobs:
         context: ./orders-service
         push: true
         tags: |
-          #yazilansari/orders-service:latest
+          yazilansari/orders-service:latest
           yazilansari/orders-service:${{ github.sha }}
 
     - name: Build and push payment-service
@@ -81,7 +81,7 @@ jobs:
         context: ./payment-service
         push: true
         tags: |
-          #yazilansari/payment-service:latest
+          yazilansari/payment-service:latest
           yazilansari/payment-service:${{ github.sha }}
 
     - name: Build and push products-service
@@ -90,7 +90,7 @@ jobs:
         context: ./products-service
         push: true
         tags: |
-          #yazilansari/products-servicelatest
+          yazilansari/products-servicelatest
           yazilansari/products-service:${{ github.sha }}
 
     - name: Update deployment image tags
