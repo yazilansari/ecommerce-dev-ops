@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: orders
-        image: orders-service:latest
+        image: yazilansari/orders-service:latest
         ports:
         - containerPort: 3000
         imagePullPolicy: Always

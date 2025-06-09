@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: auth
-        image: auth-service:latest
+        image: yazilansari/auth-service:latest
         ports:
         - containerPort: 3000
         imagePullPolicy: Always

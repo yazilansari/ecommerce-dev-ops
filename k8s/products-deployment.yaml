@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: products
-        image: products-service:latest
+        image: yazilansari/products-service:latest
         ports:
         - containerPort: 3000
         imagePullPolicy: Always
