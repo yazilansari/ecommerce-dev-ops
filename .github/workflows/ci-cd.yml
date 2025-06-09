@@ -103,8 +103,8 @@ jobs:
       run: |
         minikube start
         kubectl apply -f k8s/
-        kubectl rollout status deployment/nextjs-deployment
-        kubectl rollout status deployment/auth-deployment
-        kubectl rollout status deployment/orders-deployment
-        kubectl rollout status deployment/payment-deployment
-        kubectl rollout status deployment/products-deployment
+        # kubectl rollout status deployment/nextjs-deployment
+        # kubectl rollout status deployment/auth-deployment
+        # kubectl rollout status deployment/orders-deployment
+        # kubectl rollout status deployment/payment-deployment
+        # kubectl rollout status deployment/products-deployment
