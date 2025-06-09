@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextjs-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nextjs
+  template:
+    metadata:
+      labels:
+        app: nextjs
+    spec:
+      containers:
+      - name: nextjs
+        image: yazilansari/nextjs-app:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_PRODUCTS_API_URL
+          value: "http://api.192-168-49-2.nip.io/products"
+        - name: NEXT_PUBLIC_ORDERS_API_URL
+          value: "http://api.192-168-49-2.nip.io/orders"
+        - name: NEXT_PUBLIC_PAYMENT_API_URL
+          value: "http://api.192-168-49-2.nip.io/payment"
+        - name: NEXT_PUBLIC_AUTH_API_URL
+          value: "http://api.192-168-49-2.nip.io/auth/signin"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
