@@ -55,45 +55,35 @@ jobs:
       with:
         context: ./nextjs-app
         push: true
-        tags: |
-          #yazilansari/nextjs-app:latest
-          yazilansari/nextjs-app:${{ github.sha }}
+        tags: yazilansari/nextjs-app:${{ github.sha }}
 
     - name: Build and push auth-service
       uses: docker/build-push-action@v5
       with:
         context: ./auth-service
         push: true
-        tags: |
-          #yazilansari/auth-service:latest
-          yazilansari/auth-service:${{ github.sha }}
+        tags: yazilansari/auth-service:${{ github.sha }}
 
     - name: Build and push orders-service
       uses: docker/build-push-action@v5
       with:
         context: ./orders-service
         push: true
-        tags: |
-          #yazilansari/orders-service:latest
-          yazilansari/orders-service:${{ github.sha }}
+        tags: yazilansari/orders-service:${{ github.sha }}
 
     - name: Build and push payment-service
       uses: docker/build-push-action@v5
       with:
         context: ./payment-service
         push: true
-        tags: |
-          #yazilansari/payment-service:latest
-          yazilansari/payment-service:${{ github.sha }}
+        tags: yazilansari/payment-service:${{ github.sha }}
 
     - name: Build and push products-service
       uses: docker/build-push-action@v5
       with:
         context: ./products-service
         push: true
-        tags: |
-          #yazilansari/products-service:latest
-          yazilansari/products-service:${{ github.sha }}
+        tags: yazilansari/products-service:${{ github.sha }}
 
     - name: Update deployment image tags
       run: |
