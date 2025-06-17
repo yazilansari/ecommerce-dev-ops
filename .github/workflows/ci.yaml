@@ -5,6 +5,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -54,7 +56,7 @@ jobs:
         context: ./nextjs-app
         push: true
         tags: |
-          yazilansari/nextjs-app:latest
+          #yazilansari/nextjs-app:latest
           yazilansari/nextjs-app:${{ github.sha }}
 
     - name: Build and push auth-service
@@ -63,7 +65,7 @@ jobs:
         context: ./auth-service
         push: true
         tags: |
-          yazilansari/auth-service:latest
+          #yazilansari/auth-service:latest
           yazilansari/auth-service:${{ github.sha }}
 
     - name: Build and push orders-service
@@ -72,7 +74,7 @@ jobs:
         context: ./orders-service
         push: true
         tags: |
-          yazilansari/orders-service:latest
+          #yazilansari/orders-service:latest
           yazilansari/orders-service:${{ github.sha }}
 
     - name: Build and push payment-service
@@ -81,7 +83,7 @@ jobs:
         context: ./payment-service
         push: true
         tags: |
-          yazilansari/payment-service:latest
+          #yazilansari/payment-service:latest
           yazilansari/payment-service:${{ github.sha }}
 
     - name: Build and push products-service
@@ -90,7 +92,7 @@ jobs:
         context: ./products-service
         push: true
         tags: |
-          yazilansari/products-service:latest
+          #yazilansari/products-service:latest
           yazilansari/products-service:${{ github.sha }}
 
     - name: Update deployment image tags
@@ -108,9 +110,9 @@ jobs:
 
     - name: Commit and push updated manifests
       run: |
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
+        git config --global user.name 'Yazil Ansari'
+        git config --global user.email 'yazilansari03@gmail.com'
         git add k8s/*.yaml
         git commit -m "Update deployment image tags to ${{ github.sha }}"
-        git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/yazilansari/ecommerce-dev-ops.git
+        #git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/yazilansari/ecommerce-dev-ops.git
         git push
