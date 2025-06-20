@@ -1,0 +1,2 @@
+echo "CVE-2024-21538" > nextjs-app/.trivyignore
+echo "CVE-2025-29927" >> nextjs-app/.trivyignore

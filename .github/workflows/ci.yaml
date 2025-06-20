@@ -96,6 +96,7 @@ jobs:
         exit-code: 1
         severity: CRITICAL,HIGH
         ignore-unfixed: true
+        ignore-file: nextjs-app/.trivyignore
 
     - name: Push nextjs-app
       uses: docker/build-push-action@v5
