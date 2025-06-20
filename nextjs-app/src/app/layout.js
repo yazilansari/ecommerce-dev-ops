@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Next DevOps App",
+  title: "Next DevOps Apppp",
   description: "Created by Yazil",
 };
 
