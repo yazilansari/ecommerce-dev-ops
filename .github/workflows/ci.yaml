@@ -82,10 +82,16 @@ jobs:
         tags: yazilansari/nextjs-app:${{ github.sha }}
         outputs: type=docker,dest=/tmp/nextjs-app.tar
 
+    - name: Debug nextjs-app build
+      run: |
+        ls -lh /tmp/nextjs-app.tar || echo "nextjs-app.tar not found"
+        docker images | grep yazilansari/nextjs-app || echo "No nextjs-app image found"
+        docker load -i /tmp/nextjs-app.tar || echo "Failed to load nextjs-app.tar"
+
     - name: Scan nextjs-app image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: /tmp/nextjs-app.tar
+        image-ref: yazilansari/nextjs-app:${{ github.sha }}
         format: table
         exit-code: 1
         severity: CRITICAL,HIGH
@@ -106,10 +112,16 @@ jobs:
         tags: yazilansari/auth-service:${{ github.sha }}
         outputs: type=docker,dest=/tmp/auth-service.tar
 
+    - name: Debug auth-service build
+      run: |
+        ls -lh /tmp/auth-service.tar || echo "auth-service.tar not found"
+        docker images | grep yazilansari/auth-service || echo "No auth-service image found"
+        docker load -i /tmp/auth-service.tar || echo "Failed to load auth-service.tar"
+
     - name: Scan auth-service image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: /tmp/auth-service.tar
+        image-ref: yazilansari/auth-service:${{ github.sha }}
         format: table
         exit-code: 1
         severity: CRITICAL,HIGH
@@ -130,10 +142,16 @@ jobs:
         tags: yazilansari/orders-service:${{ github.sha }}
         outputs: type=docker,dest=/tmp/orders-service.tar
 
+    - name: Debug orders-service build
+      run: |
+        ls -lh /tmp/orders-service.tar || echo "orders-service.tar not found"
+        docker images | grep yazilansari/orders-service || echo "No orders-service image found"
+        docker load -i /tmp/orders-service.tar || echo "Failed to load orders-service.tar"
+
     - name: Scan orders-service image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: /tmp/orders-service.tar
+        image-ref: yazilansari/orders-service:${{ github.sha }}
         format: table
         exit-code: 1
         severity: CRITICAL,HIGH
@@ -154,10 +172,16 @@ jobs:
         tags: yazilansari/payment-service:${{ github.sha }}
         outputs: type=docker,dest=/tmp/payment-service.tar
 
+    - name: Debug payment-service build
+      run: |
+        ls -lh /tmp/payment-service.tar || echo "payment-service.tar not found"
+        docker images | grep yazilansari/payment-service || echo "No payment-service image found"
+        docker load -i /tmp/payment-service.tar || echo "Failed to load payment-service.tar"
+
     - name: Scan payment-service image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: /tmp/payment-service.tar
+        image-ref: yazilansari/payment-service:${{ github.sha }}
         format: table
         exit-code: 1
         severity: CRITICAL,HIGH
@@ -178,10 +202,16 @@ jobs:
         tags: yazilansari/products-service:${{ github.sha }}
         outputs: type=docker,dest=/tmp/products-service.tar
 
+    - name: Debug products-service build
+      run: |
+        ls -lh /tmp/products-service.tar || echo "products-service.tar not found"
+        docker images | grep yazilansari/products-service || echo "No products-service image found"
+        docker load -i /tmp/products-service.tar || echo "Failed to load products-service.tar"
+
     - name: Scan products-service image with Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: /tmp/products-service.tar
+        image-ref: yazilansari/products-service:${{ github.sha }}
         format: table
         exit-code: 1
         severity: CRITICAL,HIGH
