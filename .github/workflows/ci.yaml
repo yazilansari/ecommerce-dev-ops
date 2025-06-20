@@ -183,9 +183,9 @@ jobs:
     - name: Push products-service
       uses: docker/build-push-action@v5
       with:
-      context: ./products-service
-      push: true
-      tags: yazilansari/products-service:${{ github.sha }}
+        context: ./products-service
+        push: true
+        tags: yazilansari/products-service:${{ github.sha }}
 
     - name: Update deployment image tags
       run: |
