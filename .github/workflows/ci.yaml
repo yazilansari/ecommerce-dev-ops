@@ -10,6 +10,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: dev
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -20,26 +22,41 @@ jobs:
       run: |
         cd nextjs-app
         npm install
+        npm test
 
     - name: Install dependencies for auth-service
       run: |
         cd auth-service
         npm install
+        npm test
 
     - name: Install dependencies for orders-service
       run: |
         cd orders-service
         npm install
+        npm test
 
     - name: Install dependencies for payment-service
       run: |
         cd payment-service
         npm install
+        npm test
 
     - name: Install dependencies for products-service
       run: |
         cd products-service
         npm install
+        npm test
+
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@v3
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: http://192.168.28.128:9000
+      with:
+        args: >
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=300
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -50,40 +67,125 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push nextjs-app
+    - name: Build nextjs-app
+      uses: docker/build-push-action@v5
+      with:
+        context: ./nextjs-app
+        push: false
+        tags: yazilansari/nextjs-app:${{ github.sha }}
+        outputs: type=docker,dest=/tmp/nextjs-app.tar
+
+    - name: Scan nextjs-app image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: /tmp/nextjs-app.tar
+        format: table
+        exit-code: 1
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+
+    - name: Push nextjs-app
       uses: docker/build-push-action@v5
       with:
         context: ./nextjs-app
         push: true
         tags: yazilansari/nextjs-app:${{ github.sha }}
 
-    - name: Build and push auth-service
+    - name: Build auth-service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./auth-service
+        push: false
+        tags: yazilansari/auth-service:${{ github.sha }}
+        outputs: type=docker,dest=/tmp/auth-service.tar
+
+    - name: Scan auth-service image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: /tmp/auth-service.tar
+        format: table
+        exit-code: 1
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+
+    - name: Push auth-service
       uses: docker/build-push-action@v5
       with:
         context: ./auth-service
         push: true
         tags: yazilansari/auth-service:${{ github.sha }}
 
-    - name: Build and push orders-service
+    - name: Build orders-service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./orders-service
+        push: false
+        tags: yazilansari/orders-service:${{ github.sha }}
+        outputs: type=docker,dest=/tmp/orders-service.tar
+
+    - name: Scan orders-service image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: /tmp/orders-service.tar
+        format: table
+        exit-code: 1
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+
+    - name: Push orders-service
       uses: docker/build-push-action@v5
       with:
         context: ./orders-service
         push: true
         tags: yazilansari/orders-service:${{ github.sha }}
 
-    - name: Build and push payment-service
+    - name: Build payment-service
+      uses: docker/build-push-action@v5
+      with:
+        context: ./payment-service
+        push: false
+        tags: yazilansari/payment-service:${{ github.sha }}
+        outputs: type=docker,dest=/tmp/payment-service.tar
+
+    - name: Scan payment-service image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: /tmp/payment-service.tar
+        format: table
+        exit-code: 1
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+
+    - name: Push payment-service
       uses: docker/build-push-action@v5
       with:
         context: ./payment-service
         push: true
-        tags: yazilansari/payment-service:${{ github.sha }}
+        tags: yazilansari/payment-service:${{ github.sha }}      
 
-    - name: Build and push products-service
+    - name: Build products-service
       uses: docker/build-push-action@v5
       with:
         context: ./products-service
-        push: true
+        push: false
         tags: yazilansari/products-service:${{ github.sha }}
+        outputs: type=docker,dest=/tmp/products-service.tar
+
+    - name: Scan products-service image with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: /tmp/products-service.tar
+        format: table
+        exit-code: 1
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
+
+    - name: Push products-service
+      uses: docker/build-push-action@v5
+      with:
+      context: ./products-service
+      push: true
+      tags: yazilansari/products-service:${{ github.sha }}
 
     - name: Update deployment image tags
       run: |
