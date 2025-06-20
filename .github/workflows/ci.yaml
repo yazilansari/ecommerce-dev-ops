@@ -50,9 +50,9 @@ jobs:
 
     - name: Debug SonarQube connectivity
       run: |
-        curl -v http://192.168.28.128:9000/api/server/version || echo "Failed to reach SonarQube"
-        curl -u ${{ secrets.SONAR_TOKEN}}: http://192.168.28.128:9000/api/projects/search || echo "Token auth failed"
-        ping -c 4 192.168.28.128 || echo "Ping failed"
+        curl -v https://1403-86-98-147-96.ngrok-free.app/api/server/version || echo "Failed to reach SonarQube"
+        curl -u ${{ secrets.SONAR_TOKEN}}: https://1403-86-98-147-96.ngrok-free.app/api/projects/search || echo "Token auth failed"
+        # ping -c 4 https://1403-86-98-147-96.ngrok-free.app || echo "Ping failed"
 
     - name: SonarQube Scan with Retry
       uses: nick-fields/retry@v3
@@ -60,7 +60,7 @@ jobs:
         timeout_seconds: 600
         max_attempts: 3
         command: |
-          docker run --rm -e SONAR_HOST_URL=http://192.168.28.128:9000 -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+          docker run --rm -e SONAR_HOST_URL=https://1403-86-98-147-96.ngrok-free.app -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
           -v $(pwd):/usr/src sonarsource/sonar-scanner-cli:latest \
           -Dsonar.projectBaseDir=. -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.verbose=true \
           -Dsonar.scanner.force-deprecated-java-version-check=false
