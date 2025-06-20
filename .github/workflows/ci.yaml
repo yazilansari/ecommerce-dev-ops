@@ -52,7 +52,7 @@ jobs:
       uses: SonarSource/sonarqube-scan-action@v3
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: http://192.168.28.128:9000
+        SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
       with:
         args: >
           -Dsonar.qualitygate.wait=true
