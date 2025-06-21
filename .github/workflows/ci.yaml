@@ -74,6 +74,11 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Install Trivy
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasec/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.63.0
+        trivy --version
+
     - name: Build nextjs-app
       uses: docker/build-push-action@v5
       with:
@@ -88,22 +93,28 @@ jobs:
         docker images | grep yazilansari/nextjs-app || echo "No nextjs-app image found"
         docker load -i /tmp/nextjs-app.tar || echo "Failed to load nextjs-app.tar"
 
-    - name: Debug Trivy ignore file
+    - name: Debug Trivy environment
       run: |
         pwd
         ls -lh nextjs-app/.trivyignore || echo "nextjs-app/.trivyignore not found"
         cat nextjs-app/.trivyignore || echo "Failed to read nextjs-app/.trivyignore"
         file nextjs-app/.trivyignore || echo "Failed to inspect nextjs-app/.trivyignore"
+        trivy --version
+
+    # - name: Scan nextjs-app image with Trivy
+    #   uses: aquasecurity/trivy-action@0.24.0
+    #   with:
+    #     image-ref: yazilansari/nextjs-app:${{ github.sha }}
+    #     format: table
+    #     exit-code: 1
+    #     severity: CRITICAL,HIGH
+    #     ignore-unfixed: true
+    #     trivy-flags: --ignore CVE-2024-21538,CVE-2025-29927
 
     - name: Scan nextjs-app image with Trivy
-      uses: aquasecurity/trivy-action@0.24.0
-      with:
-        image-ref: yazilansari/nextjs-app:${{ github.sha }}
-        format: table
-        exit-code: 1
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
-        trivy-flags: --ignore CVE-2024-21538,CVE-2025-29927
+      run: |
+        trivy image --severity CRITICAL,HIGH --ignore-unfixed --ignore CVE-2024-21538,CVE-2025-29927 --format table yazilansari/nextjs-app:${{ github.sha }} || exit 1
+
 
     - name: Push nextjs-app
       uses: docker/build-push-action@v5
