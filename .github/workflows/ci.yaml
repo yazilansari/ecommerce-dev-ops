@@ -50,8 +50,8 @@ jobs:
 
     - name: Debug SonarQube connectivity
       run: |
-        curl -v https://1403-86-98-147-96.ngrok-free.app/api/server/version || echo "Failed to reach SonarQube"
-        curl -u ${{ secrets.SONAR_TOKEN}}: https://1403-86-98-147-96.ngrok-free.app/api/projects/search || echo "Token auth failed"
+        curl -v ${{ secrets.SONAR_URL }}/api/server/version || echo "Failed to reach SonarQube"
+        curl -u ${{ secrets.SONAR_TOKEN}}: ${{ secrets.SONAR_URL }}/api/projects/search || echo "Token auth failed"
         # ping -c 4 https://1403-86-98-147-96.ngrok-free.app || echo "Ping failed"
 
     - name: SonarQube Scan with Retry
@@ -60,7 +60,7 @@ jobs:
         timeout_seconds: 600
         max_attempts: 3
         command: |
-          docker run --rm -e SONAR_HOST_URL=https://1403-86-98-147-96.ngrok-free.app -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+          docker run --rm -e SONAR_HOST_URL=${{ secrets.SONAR_URL }} -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
           -v $(pwd):/usr/src sonarsource/sonar-scanner-cli:latest \
           -Dsonar.projectBaseDir=. -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.verbose=true \
           -Dsonar.scanner.force-deprecated-java-version-check=false
@@ -87,6 +87,11 @@ jobs:
         ls -lh /tmp/nextjs-app.tar || echo "nextjs-app.tar not found"
         docker images | grep yazilansari/nextjs-app || echo "No nextjs-app image found"
         docker load -i /tmp/nextjs-app.tar || echo "Failed to load nextjs-app.tar"
+
+    - name: Debug Trivy ignore file
+      run: |
+        ls -lh nextjs-app/.trivyignore || echo "nextjs-app/.trivyignore not found"
+        cat nextjs-app/.trivyignore || echo "Failed to read nextjs-app/.trivyignore"
 
     - name: Scan nextjs-app image with Trivy
       uses: aquasecurity/trivy-action@master
