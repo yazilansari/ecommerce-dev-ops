@@ -134,7 +134,7 @@ jobs:
     #     file auth-service/.trivyignore || echo "Failed to inspect auth-service/.trivyignore"
 
     - name: Scan auth-service image with Trivy
-      uses: aquasecurity/trivy-action@0.24.0
+      uses: aquasecurity/trivy-action@0.24.0 
       with:
         image-ref: yazilansari/auth-service:${{ github.sha }}
         format: table
