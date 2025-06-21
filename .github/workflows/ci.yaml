@@ -103,7 +103,7 @@ jobs:
         exit-code: 1
         severity: CRITICAL,HIGH
         ignore-unfixed: true
-        ignore-file: nextjs-app/.trivyignore
+        trivy-flags: --ignore CVE-2024-21538,CVE-2025-29927
 
     - name: Push nextjs-app
       uses: docker/build-push-action@v5
