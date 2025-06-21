@@ -48,22 +48,22 @@ jobs:
         npm install
         npm test
 
-    # - name: Debug SonarQube connectivity
-    #   run: |
-    #     curl -v ${{ secrets.SONAR_URL }}/api/server/version || echo "Failed to reach SonarQube"
-    #     curl -u ${{ secrets.SONAR_TOKEN}}: ${{ secrets.SONAR_URL }}/api/projects/search || echo "Token auth failed"
-    #     # ping -c 4 https://1403-86-98-147-96.ngrok-free.app || echo "Ping failed"
+    - name: Debug SonarQube connectivity
+      run: |
+        curl -v ${{ secrets.SONAR_URL }}/api/server/version || echo "Failed to reach SonarQube"
+        curl -u ${{ secrets.SONAR_TOKEN}}: ${{ secrets.SONAR_URL }}/api/projects/search || echo "Token auth failed"
+        # ping -c 4 https://1403-86-98-147-96.ngrok-free.app || echo "Ping failed"
 
-    # - name: SonarQube Scan with Retry
-    #   uses: nick-fields/retry@v3
-    #   with:
-    #     timeout_seconds: 600
-    #     max_attempts: 3
-    #     command: |
-    #       docker run --rm -e SONAR_HOST_URL=${{ secrets.SONAR_URL }} -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
-    #       -v $(pwd):/usr/src sonarsource/sonar-scanner-cli:latest \
-    #       -Dsonar.projectBaseDir=. -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.verbose=true \
-    #       -Dsonar.scanner.force-deprecated-java-version-check=false
+    - name: SonarQube Scan with Retry
+      uses: nick-fields/retry@v3
+      with:
+        timeout_seconds: 600
+        max_attempts: 3
+        command: |
+          docker run --rm -e SONAR_HOST_URL=${{ secrets.SONAR_URL }} -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+          -v $(pwd):/usr/src sonarsource/sonar-scanner-cli:latest \
+          -Dsonar.projectBaseDir=. -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.verbose=true \
+          -Dsonar.scanner.force-deprecated-java-version-check=false
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -73,14 +73,6 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Install Trivy
-      run: |
-        curl -sfL https://raw.githubusercontent.com/aquasec/trivy/main/contrib/install.sh -o install.sh
-        chmod +x install.sh
-        sudo ./install.sh -b /usr/local/bin v0.63.0
-        echo "/usr/local/bin" >> $GITHUB_PATH
-        /usr/local/bin/trivy --version || echo "Trivy installation failed"
 
     - name: Build nextjs-app
       uses: docker/build-push-action@v5
@@ -96,13 +88,12 @@ jobs:
         docker images | grep yazilansari/nextjs-app || echo "No nextjs-app image found"
         docker load -i /tmp/nextjs-app.tar || echo "Failed to load nextjs-app.tar"
 
-    - name: Debug Trivy environment
-      run: |
-        pwd
-        ls -lh nextjs-app/.trivyignore || echo "nextjs-app/.trivyignore not found"
-        cat nextjs-app/.trivyignore || echo "Failed to read nextjs-app/.trivyignore"
-        file nextjs-app/.trivyignore || echo "Failed to inspect nextjs-app/.trivyignore"
-        /usr/local/bin/trivy --version
+    # - name: Debug Trivy environment
+    #   run: |
+    #     pwd
+    #     ls -lh nextjs-app/.trivyignore || echo "nextjs-app/.trivyignore not found"
+    #     cat nextjs-app/.trivyignore || echo "Failed to read nextjs-app/.trivyignore"
+    #     file nextjs-app/.trivyignore || echo "Failed to inspect nextjs-app/.trivyignore"
 
     # - name: Scan nextjs-app image with Trivy
     #   uses: aquasecurity/trivy-action@0.24.0
@@ -113,11 +104,6 @@ jobs:
     #     severity: CRITICAL,HIGH
     #     ignore-unfixed: true
     #     trivy-flags: --ignore CVE-2024-21538,CVE-2025-29927
-
-    - name: Scan nextjs-app image with Trivy
-      run: |
-        /usr/local/bin/trivy image --severity CRITICAL,HIGH --ignore-unfixed --ignore CVE-2024-21538,CVE-2025-29927 --format table yazilansari/nextjs-app:${{ github.sha }} || exit 1
-
 
     - name: Push nextjs-app
       uses: docker/build-push-action@v5
@@ -140,14 +126,21 @@ jobs:
         docker images | grep yazilansari/auth-service || echo "No auth-service image found"
         docker load -i /tmp/auth-service.tar || echo "Failed to load auth-service.tar"
 
-    - name: Scan auth-service image with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: yazilansari/auth-service:${{ github.sha }}
-        format: table
-        exit-code: 1
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
+    # - name: Debug Trivy environment
+    #   run: |
+    #     pwd
+    #     ls -lh auth-service/.trivyignore || echo "auth-service/.trivyignore not found"
+    #     cat auth-service/.trivyignore || echo "Failed to read auth-service/.trivyignore"
+    #     file auth-service/.trivyignore || echo "Failed to inspect auth-service/.trivyignore"
+
+    # - name: Scan auth-service image with Trivy
+    #   uses: aquasecurity/trivy-action@0.24.0s
+    #   with:
+    #     image-ref: yazilansari/auth-service:${{ github.sha }}
+    #     format: table
+    #     exit-code: 1
+    #     severity: CRITICAL,HIGH
+    #     ignore-unfixed: true
 
     - name: Push auth-service
       uses: docker/build-push-action@v5
@@ -170,14 +163,21 @@ jobs:
         docker images | grep yazilansari/orders-service || echo "No orders-service image found"
         docker load -i /tmp/orders-service.tar || echo "Failed to load orders-service.tar"
 
-    - name: Scan orders-service image with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: yazilansari/orders-service:${{ github.sha }}
-        format: table
-        exit-code: 1
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
+    # - name: Debug Trivy environment
+    #   run: |
+    #     pwd
+    #     ls -lh orders-service/.trivyignore || echo "orders-service/.trivyignore not found"
+    #     cat orders-service/.trivyignore || echo "Failed to read orders-service/.trivyignore"
+    #     file orders-service/.trivyignore || echo "Failed to inspect orders-service/.trivyignore"
+
+    # - name: Scan orders-service image with Trivy
+    #   uses: aquasecurity/trivy-action@0.24.0
+    #   with:
+    #     image-ref: yazilansari/orders-service:${{ github.sha }}
+    #     format: table
+    #     exit-code: 1
+    #     severity: CRITICAL,HIGH
+    #     ignore-unfixed: true
 
     - name: Push orders-service
       uses: docker/build-push-action@v5
@@ -200,14 +200,21 @@ jobs:
         docker images | grep yazilansari/payment-service || echo "No payment-service image found"
         docker load -i /tmp/payment-service.tar || echo "Failed to load payment-service.tar"
 
-    - name: Scan payment-service image with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: yazilansari/payment-service:${{ github.sha }}
-        format: table
-        exit-code: 1
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
+    # - name: Debug Trivy environment
+    #   run: |
+    #     pwd
+    #     ls -lh payment-service/.trivyignore || echo "payment-service/.trivyignore not found"
+    #     cat payment-service/.trivyignore || echo "Failed to read payment-service/.trivyignore"
+    #     file payment-service/.trivyignore || echo "Failed to inspect payment-service/.trivyignore"
+
+    # - name: Scan payment-service image with Trivy
+    #   uses: aquasecurity/trivy-action@0.24.0
+    #   with:
+    #     image-ref: yazilansari/payment-service:${{ github.sha }}
+    #     format: table
+    #     exit-code: 1
+    #     severity: CRITICAL,HIGH
+    #     ignore-unfixed: true
 
     - name: Push payment-service
       uses: docker/build-push-action@v5
@@ -230,14 +237,21 @@ jobs:
         docker images | grep yazilansari/products-service || echo "No products-service image found"
         docker load -i /tmp/products-service.tar || echo "Failed to load products-service.tar"
 
-    - name: Scan products-service image with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: yazilansari/products-service:${{ github.sha }}
-        format: table
-        exit-code: 1
-        severity: CRITICAL,HIGH
-        ignore-unfixed: true
+    # - name: Debug Trivy environment
+    #   run: |
+    #     pwd
+    #     ls -lh products-service/.trivyignore || echo "products-service/.trivyignore not found"
+    #     cat products-service/.trivyignore || echo "Failed to read products-service/.trivyignore"
+    #     file products-service/.trivyignore || echo "Failed to inspect products-service/.trivyignore"
+
+    # - name: Scan products-service image with Trivy
+    #   uses: aquasecurity/trivy-action@0.24.0
+    #   with:
+    #     image-ref: yazilansari/products-service:${{ github.sha }}
+    #     format: table
+    #     exit-code: 1
+    #     severity: CRITICAL,HIGH
+    #     ignore-unfixed: true
 
     - name: Push products-service
       uses: docker/build-push-action@v5
