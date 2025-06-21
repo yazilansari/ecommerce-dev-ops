@@ -95,14 +95,14 @@ jobs:
     #     cat nextjs-app/.trivyignore || echo "Failed to read nextjs-app/.trivyignore"
     #     file nextjs-app/.trivyignore || echo "Failed to inspect nextjs-app/.trivyignore"
 
-    # - name: Scan nextjs-app image with Trivy
-    #   uses: aquasecurity/trivy-action@0.24.0
-    #   with:
-    #     image-ref: yazilansari/nextjs-app:${{ github.sha }}
-    #     format: table
-    #     exit-code: 1
-    #     severity: CRITICAL,HIGH
-    #     ignore-unfixed: true
+    - name: Scan nextjs-app image with Trivy
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: yazilansari/nextjs-app:${{ github.sha }}
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
     #     trivy-flags: --ignore CVE-2024-21538,CVE-2025-29927
 
     - name: Push nextjs-app
@@ -133,14 +133,14 @@ jobs:
     #     cat auth-service/.trivyignore || echo "Failed to read auth-service/.trivyignore"
     #     file auth-service/.trivyignore || echo "Failed to inspect auth-service/.trivyignore"
 
-    # - name: Scan auth-service image with Trivy
-    #   uses: aquasecurity/trivy-action@0.24.0s
-    #   with:
-    #     image-ref: yazilansari/auth-service:${{ github.sha }}
-    #     format: table
-    #     exit-code: 1
-    #     severity: CRITICAL,HIGH
-    #     ignore-unfixed: true
+    - name: Scan auth-service image with Trivy
+      uses: aquasecurity/trivy-action@0.24.0s
+      with:
+        image-ref: yazilansari/auth-service:${{ github.sha }}
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
 
     - name: Push auth-service
       uses: docker/build-push-action@v5
@@ -170,14 +170,14 @@ jobs:
     #     cat orders-service/.trivyignore || echo "Failed to read orders-service/.trivyignore"
     #     file orders-service/.trivyignore || echo "Failed to inspect orders-service/.trivyignore"
 
-    # - name: Scan orders-service image with Trivy
-    #   uses: aquasecurity/trivy-action@0.24.0
-    #   with:
-    #     image-ref: yazilansari/orders-service:${{ github.sha }}
-    #     format: table
-    #     exit-code: 1
-    #     severity: CRITICAL,HIGH
-    #     ignore-unfixed: true
+    - name: Scan orders-service image with Trivy
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: yazilansari/orders-service:${{ github.sha }}
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
 
     - name: Push orders-service
       uses: docker/build-push-action@v5
@@ -207,14 +207,14 @@ jobs:
     #     cat payment-service/.trivyignore || echo "Failed to read payment-service/.trivyignore"
     #     file payment-service/.trivyignore || echo "Failed to inspect payment-service/.trivyignore"
 
-    # - name: Scan payment-service image with Trivy
-    #   uses: aquasecurity/trivy-action@0.24.0
-    #   with:
-    #     image-ref: yazilansari/payment-service:${{ github.sha }}
-    #     format: table
-    #     exit-code: 1
-    #     severity: CRITICAL,HIGH
-    #     ignore-unfixed: true
+    - name: Scan payment-service image with Trivy
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: yazilansari/payment-service:${{ github.sha }}
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
 
     - name: Push payment-service
       uses: docker/build-push-action@v5
@@ -244,14 +244,14 @@ jobs:
     #     cat products-service/.trivyignore || echo "Failed to read products-service/.trivyignore"
     #     file products-service/.trivyignore || echo "Failed to inspect products-service/.trivyignore"
 
-    # - name: Scan products-service image with Trivy
-    #   uses: aquasecurity/trivy-action@0.24.0
-    #   with:
-    #     image-ref: yazilansari/products-service:${{ github.sha }}
-    #     format: table
-    #     exit-code: 1
-    #     severity: CRITICAL,HIGH
-    #     ignore-unfixed: true
+    - name: Scan products-service image with Trivy
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        image-ref: yazilansari/products-service:${{ github.sha }}
+        format: table
+        exit-code: 0
+        severity: CRITICAL,HIGH
+        ignore-unfixed: true
 
     - name: Push products-service
       uses: docker/build-push-action@v5
