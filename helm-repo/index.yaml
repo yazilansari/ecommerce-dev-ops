@@ -9,6 +9,6 @@ entries:
     name: my-nginx-chart
     type: application
     urls:
-    - https://yazilansari.github.io/ecommerce-dev-ops/my-nginx-chart-0.1.0.tgz
+    - https://yazilansari.github.io/ecommerce-dev-ops/helm-repo/my-nginx-chart-0.1.0.tgz
     version: 0.1.0
 generated: "2025-06-25T18:22:07.715879345+04:00"
