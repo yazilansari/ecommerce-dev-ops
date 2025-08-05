@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: nextjs
-        image: yazilansari/nextjs-app:d2923b5eed8d54ea295f3c9377189b686aaae182
+        image: yazilansari/nextjs-app:1b281281222a8d2cffd1c003291dd8ee60b3c184
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
