@@ -20,13 +20,13 @@ spec:
         - containerPort: 3000
         env:
         - name: NEXT_PUBLIC_PRODUCTS_API_URL
-          value: "http://api.192-168-49-2.nip.io/products"
+          value: "http://api.172-18-0-3.nip.io/products"
         - name: NEXT_PUBLIC_ORDERS_API_URL
-          value: "http://api.192-168-49-2.nip.io/orders"
+          value: "http://api.172-18-0-3.nip.io/orders"
         - name: NEXT_PUBLIC_PAYMENT_API_URL
-          value: "http://api.192-168-49-2.nip.io/payment"
+          value: "http://api.172-18-0-3.nip.io/payment"
         - name: NEXT_PUBLIC_AUTH_API_URL
-          value: "http://api.192-168-49-2.nip.io/auth/signin"
+          value: "http://api.172-18-0-3.nip.io/auth/signin"
         resources:
           limits:
             cpu: "500m"
