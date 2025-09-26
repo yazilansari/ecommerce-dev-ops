@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-deployment
+  namespace: ecommerce  # Specify the namespace here
 spec:
   replicas: 2
   selector:
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth
-        image: yazilansari/auth-service:e27310eb8a2449ce045180d3071a7ed04d60b3dc
+        image: yazilansari/auth-service:1b281281222a8d2cffd1c003291dd8ee60b3c184
         ports:
         - containerPort: 3000
         imagePullPolicy: Always
