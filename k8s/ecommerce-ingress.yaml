@@ -5,13 +5,13 @@ metadata:
   namespace: ecommerce  # Specify the namespace here
   annotations:
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "http://192-168-49-2.nip.io"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://192-168-28-130.nip.io"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
     nginx.ingress.kubernetes.io/use-regex: "false"
 spec:
   ingressClassName: nginx
   rules:
-  - host: 192-168-49-2.nip.io
+  - host: 192-168-28-130.nip.io
     http:
       paths:
       - path: /
@@ -21,7 +21,7 @@ spec:
             name: nextjs-service
             port:
               number: 3000
-  - host: api.192-168-49-2.nip.io
+  - host: api.192-168-28-130.nip.io
     http:
       paths:
       - path: /products
