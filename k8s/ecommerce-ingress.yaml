@@ -31,7 +31,7 @@ spec:
           service:
             name: products-service
             port:
-              number: 80
+              number: 3000
       - path: /orders
         pathType: Prefix
         backend:
