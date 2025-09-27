@@ -34,6 +34,12 @@ jobs:
         run: |
           echo "Repository structure:"
           ls -R
+      - name: Debug git status
+        run: |
+          echo "Git status:"
+          git status
+          echo "Git log (last commit):"
+          git log -1 --name-only
       - name: Debug changed files
         run: |
           echo "Changed files:"
@@ -55,7 +61,7 @@ jobs:
           for file in $(git diff --name-only HEAD~1 HEAD); do
             echo "File: $file"
             case "$file" in
-              nextjs-app/*) NEXTJS=true ;;
+              nextjs-app/* | src/nextjs-app/*) NEXTJS=true ;;
               auth-service/*) AUTH=true ;;
               orders-service/*) ORDERS=true ;;
               payment-service/*) PAYMENT=true ;;
@@ -125,7 +131,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  # 3️⃣ Update K8s deployment (runs only if at least one build job ran successfully)
+  # 3️⃣ Update K8s deployment (runs if any-build is true)
   update-k8s:
     needs:
       - changes
@@ -138,8 +144,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Debug job statuses
+      - name: Debug inputs and job statuses
         run: |
+          echo "any-build: ${{ needs.changes.outputs.any-build }}"
           echo "Job statuses:"
           echo "build-nextjs: ${{ needs.build-nextjs.result }}"
           echo "build-auth: ${{ needs.build-auth.result }}"
