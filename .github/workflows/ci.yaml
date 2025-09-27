@@ -58,7 +58,7 @@ jobs:
           echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
           echo "any-build=$ANY_BUILD" >> $GITHUB_OUTPUT
 
-  # 2️⃣ Build jobs (parallel, only if changed)
+  # 2️⃣ Build jobs (parallel, only if changed) 
   build-nextjs:
     needs: changes
     runs-on: ubuntu-latest
