@@ -67,8 +67,6 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    outputs:
-      ran: true
 
   build-auth:
     needs: changes
@@ -79,8 +77,6 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    outputs:
-      ran: true
 
   build-orders:
     needs: changes
@@ -91,8 +87,6 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    outputs:
-      ran: true
 
   build-payment:
     needs: changes
@@ -103,8 +97,6 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    outputs:
-      ran: true
 
   build-products:
     needs: changes
@@ -115,10 +107,8 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    outputs:
-      ran: true
 
-  # 3️⃣ Update K8s deployment (runs only if at least one build job ran)
+  # 3️⃣ Update K8s deployment (runs only if at least one build job ran successfully)
   update-k8s:
     needs:
       - changes
@@ -129,11 +119,11 @@ jobs:
       - build-products
     if: >-
       ${{ needs.changes.outputs.any-build == 'true' &&
-          (needs.build-nextjs.outputs.ran == 'true' ||
-           needs.build-auth.outputs.ran == 'true' ||
-           needs.build-orders.outputs.ran == 'true' ||
-           needs.build-payment.outputs.ran == 'true' ||
-           needs.build-products.outputs.ran == 'true') }}
+          (needs.build-nextjs.result == 'success' ||
+           needs.build-auth.result == 'success' ||
+           needs.build-orders.result == 'success' ||
+           needs.build-payment.result == 'success' ||
+           needs.build-products.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
