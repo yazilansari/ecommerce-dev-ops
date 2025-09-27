@@ -10,7 +10,6 @@ on:
       - 'payment-service/**'
       - 'products-service/**'
       - 'k8s/**'
-      - '.github/workflows/**'
 
 permissions:
   contents: write
@@ -26,6 +25,7 @@ jobs:
       products: ${{ steps.filter.outputs.products }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -40,6 +40,14 @@ jobs:
               - 'payment-service/**'
             products:
               - 'products-service/**'
+
+      - name: Debug paths-filter output
+        run: |
+          echo "NextJS changed: ${{ steps.filter.outputs.nextjs }}"
+          echo "Auth changed: ${{ steps.filter.outputs.auth }}"
+          echo "Orders changed: ${{ steps.filter.outputs.orders }}"
+          echo "Payment changed: ${{ steps.filter.outputs.payment }}"
+          echo "Products changed: ${{ steps.filter.outputs.products }}"
 
   build-nextjs:
     if: ${{ needs.changes.outputs.nextjs == 'true' }}
@@ -101,6 +109,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo "Updating K8s deployment files..."
           if [ "${{ needs.build-nextjs.result }}" == "success" ]; then
             sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
           fi
