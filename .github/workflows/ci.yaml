@@ -123,7 +123,12 @@ jobs:
 
   # 3️⃣ Update K8s only if any service built
   update-k8s:
-    needs: changes
+    needs: 
+      - build-nextjs
+      - build-auth
+      - build-orders
+      - build-payment
+      - build-products
     if: ${{ needs.changes.outputs.any-build == 'true' }}
     runs-on: ubuntu-latest
     steps:
