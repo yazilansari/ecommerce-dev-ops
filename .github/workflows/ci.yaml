@@ -38,7 +38,6 @@ jobs:
           ORDERS=false
           PAYMENT=false
           PRODUCTS=false
-
           for file in $(git diff --name-only HEAD~1 HEAD); do
             case "$file" in
               nextjs-app/*) NEXTJS=true ;;
@@ -48,12 +47,10 @@ jobs:
               products-service/*) PRODUCTS=true ;;
             esac
           done
-
           ANY_BUILD=false
           if [ "$NEXTJS" = true ] || [ "$AUTH" = true ] || [ "$ORDERS" = true ] || [ "$PAYMENT" = true ] || [ "$PRODUCTS" = true ]; then
             ANY_BUILD=true
           fi
-
           echo "nextjs=$NEXTJS" >> $GITHUB_OUTPUT
           echo "auth=$AUTH" >> $GITHUB_OUTPUT
           echo "orders=$ORDERS" >> $GITHUB_OUTPUT
@@ -61,18 +58,10 @@ jobs:
           echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
           echo "any-build=$ANY_BUILD" >> $GITHUB_OUTPUT
 
-      - name: Debug changed services
-        run: |
-          echo "NextJS changed: ${{ steps.set-outputs.outputs.nextjs }}"
-          echo "Auth changed: ${{ steps.set-outputs.outputs.auth }}"
-          echo "Orders changed: ${{ steps.set-outputs.outputs.orders }}"
-          echo "Payment changed: ${{ steps.set-outputs.outputs.payment }}"
-          echo "Products changed: ${{ steps.set-outputs.outputs.products }}"
-          echo "Any build needed: ${{ steps.set-outputs.outputs.any-build }}"
-
-  # 2️⃣ Build jobs (only if changed)
+  # 2️⃣ Build jobs (parallel, only if changed)
   build-nextjs:
     needs: changes
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.nextjs == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
@@ -83,6 +72,7 @@ jobs:
 
   build-auth:
     needs: changes
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.auth == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
@@ -93,6 +83,7 @@ jobs:
 
   build-orders:
     needs: changes
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.orders == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
@@ -103,6 +94,7 @@ jobs:
 
   build-payment:
     needs: changes
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.payment == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
@@ -113,6 +105,7 @@ jobs:
 
   build-products:
     needs: changes
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.products == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
@@ -121,8 +114,14 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+  # 3️⃣ Update K8s deployment (runs after all builds)
   update-k8s:
-    needs: changes
+    needs:
+      - build-nextjs
+      - build-auth
+      - build-orders
+      - build-payment
+      - build-products
     if: ${{ needs.changes.outputs.any-build == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -151,4 +150,3 @@ jobs:
           git add k8s/*.yaml
           git commit -m "Update deployment image tags to ${{ github.sha }}" || echo "No changes to commit"
           git push
-
