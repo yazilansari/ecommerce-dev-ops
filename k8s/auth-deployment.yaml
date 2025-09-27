@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth
-        image: yazilansari/auth-service:f18c075a1079d8ddbca0b9f4e37f5f348960e97f
+        image: yazilansari/auth-service:307871f879a94d6d4cbb8faed2cf369d9589242f
         ports:
         - containerPort: 3000
         imagePullPolicy: Always
