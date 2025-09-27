@@ -30,6 +30,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Debug changed files
+        run: |
+          echo "Changed files:"
+          git diff --name-only HEAD~1 HEAD || echo "No changes detected"
       - id: set-outputs
         run: |
           NEXTJS=false
@@ -37,7 +41,6 @@ jobs:
           ORDERS=false
           PAYMENT=false
           PRODUCTS=false
-          echo "Changed files: $(git diff --name-only HEAD~1 HEAD)"
           for file in $(git diff --name-only HEAD~1 HEAD); do
             case "$file" in
               nextjs-app/*) NEXTJS=true ;;
@@ -119,10 +122,18 @@ jobs:
       - build-orders
       - build-payment
       - build-products
-    if: ${{ needs.changes.outputs.any-build == 'true' && (needs.build-nextjs.result == 'success' || needs.build-auth.result == 'success' || needs.build-orders.result == 'success' || needs.build-payment.result == 'success' || needs.build-products.result == 'success') }}
+    if: ${{ needs.changes.outputs.any-build == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Debug job statuses
+        run: |
+          echo "Job statuses:"
+          echo "build-nextjs: ${{ needs.build-nextjs.result }}"
+          echo "build-auth: ${{ needs.build-auth.result }}"
+          echo "build-orders: ${{ needs.build-orders.result }}"
+          echo "build-payment: ${{ needs.build-payment.result }}"
+          echo "build-products: ${{ needs.build-products.result }}"
       - name: Update deployment image tags
         run: |
           echo "Updating K8s deployment files..."
