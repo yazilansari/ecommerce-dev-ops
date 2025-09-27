@@ -12,6 +12,9 @@ on:
       - 'k8s/**'
       - '.github/workflows/**'
 
+permissions:
+  contents: write
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -39,7 +42,7 @@ jobs:
               - 'products-service/**'
 
   build-nextjs:
-    if: needs.changes.outputs.nextjs == 'true'
+    if: ${{ needs.changes.outputs.nextjs == 'true' }}
     needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
@@ -49,7 +52,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-auth:
-    if: needs.changes.outputs.auth == 'true'
+    if: ${{ needs.changes.outputs.auth == 'true' }}
     needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
@@ -59,7 +62,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-orders:
-    if: needs.changes.outputs.orders == 'true'
+    if: ${{ needs.changes.outputs.orders == 'true' }}
     needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
@@ -69,7 +72,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-payment:
-    if: needs.changes.outputs.payment == 'true'
+    if: ${{ needs.changes.outputs.payment == 'true' }}
     needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
@@ -79,7 +82,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-products:
-    if: needs.changes.outputs.products == 'true'
+    if: ${{ needs.changes.outputs.products == 'true' }}
     needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
@@ -95,6 +98,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Update deployment image tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ needs.build-nextjs.result }}" == "success" ]; then
             sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
