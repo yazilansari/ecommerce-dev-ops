@@ -24,10 +24,11 @@ jobs:
       orders: ${{ steps.set-outputs.outputs.orders }}
       payment: ${{ steps.set-outputs.outputs.payment }}
       products: ${{ steps.set-outputs.outputs.products }}
+      any-build: ${{ steps.set-outputs.outputs.any-build }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history required for accurate diff
+          fetch-depth: 0
 
       - name: Detect changed services
         id: set-outputs
@@ -48,11 +49,17 @@ jobs:
             esac
           done
 
+          ANY_BUILD=false
+          if [ "$NEXTJS" = true ] || [ "$AUTH" = true ] || [ "$ORDERS" = true ] || [ "$PAYMENT" = true ] || [ "$PRODUCTS" = true ]; then
+            ANY_BUILD=true
+          fi
+
           echo "nextjs=$NEXTJS" >> $GITHUB_OUTPUT
           echo "auth=$AUTH" >> $GITHUB_OUTPUT
           echo "orders=$ORDERS" >> $GITHUB_OUTPUT
           echo "payment=$PAYMENT" >> $GITHUB_OUTPUT
           echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
+          echo "any-build=$ANY_BUILD" >> $GITHUB_OUTPUT
 
       - name: Debug changed services
         run: |
@@ -61,6 +68,7 @@ jobs:
           echo "Orders changed: ${{ steps.set-outputs.outputs.orders }}"
           echo "Payment changed: ${{ steps.set-outputs.outputs.payment }}"
           echo "Products changed: ${{ steps.set-outputs.outputs.products }}"
+          echo "Any build needed: ${{ steps.set-outputs.outputs.any-build }}"
 
   build-nextjs:
     if: ${{ needs.changes.outputs.nextjs == 'true' }}
@@ -115,13 +123,7 @@ jobs:
   update-k8s:
     needs: [build-nextjs, build-auth, build-orders, build-payment, build-products]
     runs-on: ubuntu-latest
-    # Run only if at least one service was built successfully
-    if: |
-      needs.build-nextjs.outcome == 'success' ||
-      needs.build-auth.outcome == 'success' ||
-      needs.build-orders.outcome == 'success' ||
-      needs.build-payment.outcome == 'success' ||
-      needs.build-products.outcome == 'success'
+    if: needs.changes.outputs.any-build == 'true'   # Only runs if any service built
     steps:
       - uses: actions/checkout@v4
       - name: Update deployment image tags
@@ -150,4 +152,3 @@ jobs:
           git add k8s/*.yaml
           git commit -m "Update deployment image tags to ${{ github.sha }}" || echo "No changes to commit"
           git push
-

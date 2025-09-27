@@ -13,10 +13,22 @@ on:
         required: true
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies & run tests
+        run: |
+          cd ${{ inputs.service }}
+          npm install
+          npm test
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,10 +43,16 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./${{ inputs.service }}
-          push: true
+          push: false
           tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/${{ inputs.service }}.tar
 
-      - name: Scan image with Trivy
+      - name: Debug Docker build
+        run: |
+          ls -lh /tmp/${{ inputs.service }}.tar || echo "${{ inputs.service }}.tar not found"
+          docker load -i /tmp/${{ inputs.service }}.tar || echo "Failed to load image"
+
+      - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: yazilansari/${{ inputs.service }}:${{ github.sha }}
@@ -42,3 +60,10 @@ jobs:
           exit-code: 0
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+
+      - name: Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ inputs.service }}
+          push: true
+          tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
