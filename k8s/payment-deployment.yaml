@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: payment
-        image: yazilansari/payment-service:1b281281222a8d2cffd1c003291dd8ee60b3c184
+        image: yazilansari/payment-service:5df7ed62b10c88f1c11763ab0514b1e71f188897
         ports:
         - containerPort: 3000
         imagePullPolicy: Always
