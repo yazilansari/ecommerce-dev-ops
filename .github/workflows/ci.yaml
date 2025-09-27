@@ -121,21 +121,13 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  # 3️⃣ Update K8s only if any service built
   update-k8s:
-    needs: 
-      - build-nextjs
-      - build-auth
-      - build-orders
-      - build-payment
-      - build-products
+    needs: changes
     if: ${{ needs.changes.outputs.any-build == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Update deployment image tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Updating K8s deployment files..."
           if [ "${{ needs.changes.outputs.nextjs }}" == "true" ]; then
@@ -159,3 +151,4 @@ jobs:
           git add k8s/*.yaml
           git commit -m "Update deployment image tags to ${{ github.sha }}" || echo "No changes to commit"
           git push
+
