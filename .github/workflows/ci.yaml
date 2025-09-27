@@ -19,38 +19,48 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      nextjs: ${{ steps.filter.outputs.nextjs }}
-      auth: ${{ steps.filter.outputs.auth }}
-      orders: ${{ steps.filter.outputs.orders }}
-      payment: ${{ steps.filter.outputs.payment }}
-      products: ${{ steps.filter.outputs.products }}
+      nextjs: ${{ steps.set-outputs.outputs.nextjs }}
+      auth: ${{ steps.set-outputs.outputs.auth }}
+      orders: ${{ steps.set-outputs.outputs.orders }}
+      payment: ${{ steps.set-outputs.outputs.payment }}
+      products: ${{ steps.set-outputs.outputs.products }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2   # Important for paths-filter to detect changes correctly
+          fetch-depth: 0  # Full history required for accurate diff
 
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            nextjs:
-              - 'nextjs-app/**'
-            auth:
-              - 'auth-service/**'
-            orders:
-              - 'orders-service/**'
-            payment:
-              - 'payment-service/**'
-            products:
-              - 'products-service/**'
-
-      - name: Debug paths-filter output
+      - name: Detect changed services
+        id: set-outputs
         run: |
-          echo "NextJS changed: ${{ steps.filter.outputs.nextjs }}"
-          echo "Auth changed: ${{ steps.filter.outputs.auth }}"
-          echo "Orders changed: ${{ steps.filter.outputs.orders }}"
-          echo "Payment changed: ${{ steps.filter.outputs.payment }}"
-          echo "Products changed: ${{ steps.filter.outputs.products }}"
+          NEXTJS=false
+          AUTH=false
+          ORDERS=false
+          PAYMENT=false
+          PRODUCTS=false
+
+          for file in $(git diff --name-only HEAD~1 HEAD); do
+            case "$file" in
+              nextjs-app/*) NEXTJS=true ;;
+              auth-service/*) AUTH=true ;;
+              orders-service/*) ORDERS=true ;;
+              payment-service/*) PAYMENT=true ;;
+              products-service/*) PRODUCTS=true ;;
+            esac
+          done
+
+          echo "nextjs=$NEXTJS" >> $GITHUB_OUTPUT
+          echo "auth=$AUTH" >> $GITHUB_OUTPUT
+          echo "orders=$ORDERS" >> $GITHUB_OUTPUT
+          echo "payment=$PAYMENT" >> $GITHUB_OUTPUT
+          echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
+
+      - name: Debug changed services
+        run: |
+          echo "NextJS changed: ${{ steps.set-outputs.outputs.nextjs }}"
+          echo "Auth changed: ${{ steps.set-outputs.outputs.auth }}"
+          echo "Orders changed: ${{ steps.set-outputs.outputs.orders }}"
+          echo "Payment changed: ${{ steps.set-outputs.outputs.payment }}"
+          echo "Products changed: ${{ steps.set-outputs.outputs.products }}"
 
   build-nextjs:
     if: ${{ needs.changes.outputs.nextjs == 'true' }}
