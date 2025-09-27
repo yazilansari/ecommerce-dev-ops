@@ -12,31 +12,51 @@ on:
       - 'k8s/**'
 
 jobs:
-  # Shared setup (checkout + node cache)
-  setup:
+  changes:
     runs-on: ubuntu-latest
     outputs:
-      sha: ${{ github.sha }}
+      nextjs: ${{ steps.filter.outputs.nextjs }}
+      auth: ${{ steps.filter.outputs.auth }}
+      orders: ${{ steps.filter.outputs.orders }}
+      payment: ${{ steps.filter.outputs.payment }}
+      products: ${{ steps.filter.outputs.products }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          ref: dev
+          filters: |
+            nextjs:
+              - 'nextjs-app/**'
+            auth:
+              - 'auth-service/**'
+            orders:
+              - 'orders-service/**'
+            payment:
+              - 'payment-service/**'
+            products:
+              - 'products-service/**'
 
   build-and-test:
-    needs: setup
+    needs: changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
         service: [nextjs-app, auth-service, orders-service, payment-service, products-service]
-    if: |
-      contains(github.event.head_commit.message, matrix.service) ||
-      contains(toJSON(github.event.commits), matrix.service) ||
-      github.event_name == 'workflow_dispatch'
+        include:
+          - service: nextjs-app
+            key: nextjs
+          - service: auth-service
+            key: auth
+          - service: orders-service
+            key: orders
+          - service: payment-service
+            key: payment
+          - service: products-service
+            key: products
+    if: needs.changes.outputs[matrix.key] == 'true'
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: dev
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
