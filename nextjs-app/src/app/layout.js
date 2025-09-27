@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Next DevOps App",
-  description: "Created by Yazil",
+  description: "Created by Yazil Ansari",
 };
 
 export default function RootLayout({ children }) {
