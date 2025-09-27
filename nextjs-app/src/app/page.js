@@ -27,7 +27,7 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Next DevOps App</h1>
+      <h1>Next DevOps App - Deployed by Yazil Ansari</h1>
       <h2>Products</h2>
       <ul>
         {products.map(product => (

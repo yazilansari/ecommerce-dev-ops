@@ -10,6 +10,7 @@ on:
       - 'payment-service/**'
       - 'products-service/**'
       - 'k8s/**'
+      - '.github/workflows/**'
 
 jobs:
   changes:
