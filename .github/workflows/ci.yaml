@@ -54,37 +54,49 @@ jobs:
             key: payment
           - service: products-service
             key: products
-    if: needs.changes.outputs[matrix.key] == 'true'
+
     steps:
       - uses: actions/checkout@v4
 
+      - name: Stop if service not changed
+        if: needs.changes.outputs[matrix.key] != 'true'
+        run: |
+          echo "No changes in ${{ matrix.service }}, skipping..."
+          exit 0
+
       - name: Set up Node.js
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
       - name: Cache Node.js dependencies
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: actions/cache@v4
         with:
           path: ${{ matrix.service }}/node_modules
           key: ${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', matrix.service)) }}
 
       - name: Install and Test
+        if: needs.changes.outputs[matrix.key] == 'true'
         run: |
           cd ${{ matrix.service }}
           npm install
           npm test
 
       - name: Set up Docker Buildx
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Scan Docker image
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.service }}
@@ -94,6 +106,7 @@ jobs:
           cache-to: type=registry,ref=yazilansari/${{ matrix.service }}:cache,mode=max
 
       - name: Scan image with Trivy
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: yazilansari/${{ matrix.service }}:${{ github.sha }}
@@ -103,6 +116,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Push image
+        if: needs.changes.outputs[matrix.key] == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./${{ matrix.service }}
