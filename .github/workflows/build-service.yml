@@ -47,10 +47,8 @@ jobs:
           tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
           outputs: type=docker,dest=/tmp/${{ inputs.service }}.tar
 
-      - name: Debug Docker build
-        run: |
-          ls -lh /tmp/${{ inputs.service }}.tar || echo "${{ inputs.service }}.tar not found"
-          docker load -i /tmp/${{ inputs.service }}.tar || echo "Failed to load image"
+      - name: Load Docker image
+        run: docker load -i /tmp/${{ inputs.service }}.tar || echo "Failed to load image"
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.24.0

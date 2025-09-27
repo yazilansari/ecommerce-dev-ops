@@ -58,56 +58,91 @@ jobs:
           echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
           echo "any-build=$ANY_BUILD" >> $GITHUB_OUTPUT
 
-  # 2️⃣ Build jobs (parallel, only if changed)
+  # 2️⃣ Build jobs (always exist, skip steps if not changed)
   build-nextjs:
     needs: changes
-    if: ${{ needs.changes.outputs.nextjs == 'true' }}
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: nextjs-app
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if not changed
+        if: ${{ needs.changes.outputs.nextjs != 'true' }}
+        run: echo "NextJS not changed, skipping build" && exit 0
+
+      - name: Build NextJS
+        if: ${{ needs.changes.outputs.nextjs == 'true' }}
+        uses: ./.github/workflows/build-service.yml
+        with:
+          service: nextjs-app
+        secrets:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-auth:
     needs: changes
-    if: ${{ needs.changes.outputs.auth == 'true' }}
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: auth-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if not changed
+        if: ${{ needs.changes.outputs.auth != 'true' }}
+        run: echo "Auth service not changed, skipping build" && exit 0
+
+      - name: Build Auth
+        if: ${{ needs.changes.outputs.auth == 'true' }}
+        uses: ./.github/workflows/build-service.yml
+        with:
+          service: auth-service
+        secrets:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-orders:
     needs: changes
-    if: ${{ needs.changes.outputs.orders == 'true' }}
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: orders-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if not changed
+        if: ${{ needs.changes.outputs.orders != 'true' }}
+        run: echo "Orders service not changed, skipping build" && exit 0
+
+      - name: Build Orders
+        if: ${{ needs.changes.outputs.orders == 'true' }}
+        uses: ./.github/workflows/build-service.yml
+        with:
+          service: orders-service
+        secrets:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-payment:
     needs: changes
-    if: ${{ needs.changes.outputs.payment == 'true' }}
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: payment-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if not changed
+        if: ${{ needs.changes.outputs.payment != 'true' }}
+        run: echo "Payment service not changed, skipping build" && exit 0
+
+      - name: Build Payment
+        if: ${{ needs.changes.outputs.payment == 'true' }}
+        uses: ./.github/workflows/build-service.yml
+        with:
+          service: payment-service
+        secrets:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-products:
     needs: changes
-    if: ${{ needs.changes.outputs.products == 'true' }}
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: products-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip if not changed
+        if: ${{ needs.changes.outputs.products != 'true' }}
+        run: echo "Products service not changed, skipping build" && exit 0
+
+      - name: Build Products
+        if: ${{ needs.changes.outputs.products == 'true' }}
+        uses: ./.github/workflows/build-service.yml
+        with:
+          service: products-service
+        secrets:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   # 3️⃣ Update K8s deployment (runs after all builds)
   update-k8s:
