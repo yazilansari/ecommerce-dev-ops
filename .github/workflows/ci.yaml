@@ -111,11 +111,17 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
+      
   update-k8s:
     needs: [build-nextjs, build-auth, build-orders, build-payment, build-products]
     runs-on: ubuntu-latest
-    if: always()
+    # Run only if at least one build job exists (skipped jobs count as 'skipped')
+    if: |
+      needs.build-nextjs.result == 'success' || 
+      needs.build-auth.result == 'success' || 
+      needs.build-orders.result == 'success' || 
+      needs.build-payment.result == 'success' || 
+      needs.build-products.result == 'success'
     steps:
       - uses: actions/checkout@v4
       - name: Update deployment image tags
