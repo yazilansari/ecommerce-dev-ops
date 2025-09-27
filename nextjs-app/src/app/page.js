@@ -27,8 +27,8 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Next DevOps App - Deployed by Yazil Ansari</h1>
-      <h2>Products</h2>
+      <h1>Next Ecommerce App - Deployed by Yazil Ansari</h1>
+      <h2>All Products</h2>
       <ul>
         {products.map(product => (
           <li key={product.id}>
