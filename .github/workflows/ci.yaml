@@ -16,7 +16,6 @@ permissions:
   contents: write
 
 jobs:
-  # 1️⃣ Detect changes
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -25,65 +24,47 @@ jobs:
       orders: ${{ steps.set-outputs.outputs.orders }}
       payment: ${{ steps.set-outputs.outputs.payment }}
       products: ${{ steps.set-outputs.outputs.products }}
-      any-build: ${{ steps.set-outputs.outputs.any-build }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Debug repository structure
-        run: |
-          echo "Repository structure:"
-          ls -R
-      - name: Debug git status
-        run: |
-          echo "Git status:"
-          git status
-          echo "Git log (last commit):"
-          git log -1 --name-only
-      - name: Debug changed files
-        run: |
-          echo "Changed files:"
-          git diff --name-only HEAD~1 HEAD || echo "No changes detected"
-          git diff --name-only HEAD~1 HEAD > changed_files.txt
-      - name: Upload changed files artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: changed-files
-          path: changed_files.txt
-      - id: set-outputs
+          fetch-depth: 0  # Full history required for accurate diff
+
+      - name: Detect changed services
+        id: set-outputs
         run: |
           NEXTJS=false
           AUTH=false
           ORDERS=false
           PAYMENT=false
           PRODUCTS=false
-          echo "Processing changed files:"
+
           for file in $(git diff --name-only HEAD~1 HEAD); do
-            echo "File: $file"
             case "$file" in
-              nextjs-app/* | src/nextjs-app/*) NEXTJS=true ;;
+              nextjs-app/*) NEXTJS=true ;;
               auth-service/*) AUTH=true ;;
               orders-service/*) ORDERS=true ;;
               payment-service/*) PAYMENT=true ;;
               products-service/*) PRODUCTS=true ;;
             esac
           done
-          ANY_BUILD=false
-          if [ "$NEXTJS" = true ] || [ "$AUTH" = true ] || [ "$ORDERS" = true ] || [ "$PAYMENT" = true ] || [ "$PRODUCTS" = true ]; then
-            ANY_BUILD=true
-          fi
-          echo "Outputs: nextjs=$NEXTJS, auth=$AUTH, orders=$ORDERS, payment=$PAYMENT, products=$PRODUCTS, any-build=$ANY_BUILD"
+
           echo "nextjs=$NEXTJS" >> $GITHUB_OUTPUT
           echo "auth=$AUTH" >> $GITHUB_OUTPUT
           echo "orders=$ORDERS" >> $GITHUB_OUTPUT
           echo "payment=$PAYMENT" >> $GITHUB_OUTPUT
           echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
-          echo "any-build=$ANY_BUILD" >> $GITHUB_OUTPUT
 
-  # 2️⃣ Build jobs (parallel, only if changed)
+      - name: Debug changed services
+        run: |
+          echo "NextJS changed: ${{ steps.set-outputs.outputs.nextjs }}"
+          echo "Auth changed: ${{ steps.set-outputs.outputs.auth }}"
+          echo "Orders changed: ${{ steps.set-outputs.outputs.orders }}"
+          echo "Payment changed: ${{ steps.set-outputs.outputs.payment }}"
+          echo "Products changed: ${{ steps.set-outputs.outputs.products }}"
+
   build-nextjs:
-    needs: changes
     if: ${{ needs.changes.outputs.nextjs == 'true' }}
+    needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
       service: nextjs-app
@@ -92,8 +73,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-auth:
-    needs: changes
     if: ${{ needs.changes.outputs.auth == 'true' }}
+    needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
       service: auth-service
@@ -102,8 +83,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-orders:
-    needs: changes
     if: ${{ needs.changes.outputs.orders == 'true' }}
+    needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
       service: orders-service
@@ -112,8 +93,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-payment:
-    needs: changes
     if: ${{ needs.changes.outputs.payment == 'true' }}
+    needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
       service: payment-service
@@ -122,8 +103,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-products:
-    needs: changes
     if: ${{ needs.changes.outputs.products == 'true' }}
+    needs: changes
     uses: ./.github/workflows/build-service.yml
     with:
       service: products-service
@@ -131,48 +112,33 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  # 3️⃣ Update K8s deployment (runs if any-build is true)
   update-k8s:
-    needs:
-      - changes
-      - build-nextjs
-      - build-auth
-      - build-orders
-      - build-payment
-      - build-products
-    if: ${{ needs.changes.outputs.any-build == 'true' }}
+    needs: [build-nextjs, build-auth, build-orders, build-payment, build-products]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - uses: actions/checkout@v4
-      - name: Debug inputs and job statuses
-        run: |
-          echo "any-build: ${{ needs.changes.outputs.any-build }}"
-          echo "Job statuses:"
-          echo "build-nextjs: ${{ needs.build-nextjs.result }}"
-          echo "build-auth: ${{ needs.build-auth.result }}"
-          echo "build-orders: ${{ needs.build-orders.result }}"
-          echo "build-payment: ${{ needs.build-payment.result }}"
-          echo "build-products: ${{ needs.build-products.result }}"
       - name: Update deployment image tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Updating K8s deployment files..."
-          if [ "${{ needs.changes.outputs.nextjs }}" == "true" ]; then
+          if [ "${{ needs.build-nextjs.result }}" == "success" ]; then
             sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
           fi
-          if [ "${{ needs.changes.outputs.auth }}" == "true" ]; then
+          if [ "${{ needs.build-auth.result }}" == "success" ]; then
             sed -i "s|yazilansari/auth-service:.*|yazilansari/auth-service:${{ github.sha }}|" k8s/auth-deployment.yaml
           fi
-          if [ "${{ needs.changes.outputs.orders }}" == "true" ]; then
+          if [ "${{ needs.build-orders.result }}" == "success" ]; then
             sed -i "s|yazilansari/orders-service:.*|yazilansari/orders-service:${{ github.sha }}|" k8s/orders-deployment.yaml
           fi
-          if [ "${{ needs.changes.outputs.payment }}" == "true" ]; then
+          if [ "${{ needs.build-payment.result }}" == "success" ]; then
             sed -i "s|yazilansari/payment-service:.*|yazilansari/payment-service:${{ github.sha }}|" k8s/payment-deployment.yaml
           fi
-          if [ "${{ needs.changes.outputs.products }}" == "true" ]; then
+          if [ "${{ needs.build-products.result }}" == "success" ]; then
             sed -i "s|yazilansari/products-service:.*|yazilansari/products-service:${{ github.sha }}|" k8s/products-deployment.yaml
           fi
-          echo "Updated deployment files:"
-          git diff k8s/*.yaml || echo "No changes in deployment files"
+
           git config --global user.name 'Yazil Ansari'
           git config --global user.email 'yazilansari03@gmail.com'
           git add k8s/*.yaml
