@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/yazilansari/ecommerce-dev-ops.git'
-    targetRevision: HEAD
+    targetRevision: dev
     path: k8s
   destination:
     server: 'https://kubernetes.default.svc'
