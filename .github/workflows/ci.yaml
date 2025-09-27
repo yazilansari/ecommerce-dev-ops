@@ -10,6 +10,7 @@ on:
       - 'payment-service/**'
       - 'products-service/**'
       - 'k8s/**'
+      - '.github/workflows/**'
 
 permissions:
   contents: write
@@ -25,6 +26,8 @@ jobs:
       products: ${{ steps.filter.outputs.products }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # Important for paths-filter to detect changes correctly
 
       - uses: dorny/paths-filter@v3
         id: filter
