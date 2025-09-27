@@ -16,6 +16,7 @@ permissions:
   contents: write
 
 jobs:
+  # 1️⃣ Detect changes
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -30,8 +31,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect changed services
-        id: set-outputs
+      - id: set-outputs
         run: |
           NEXTJS=false
           AUTH=false
@@ -70,9 +70,10 @@ jobs:
           echo "Products changed: ${{ steps.set-outputs.outputs.products }}"
           echo "Any build needed: ${{ steps.set-outputs.outputs.any-build }}"
 
+  # 2️⃣ Build jobs (only if changed)
   build-nextjs:
-    if: ${{ needs.changes.outputs.nextjs == 'true' }}
     needs: changes
+    if: ${{ needs.changes.outputs.nextjs == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
       service: nextjs-app
@@ -81,8 +82,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-auth:
-    if: ${{ needs.changes.outputs.auth == 'true' }}
     needs: changes
+    if: ${{ needs.changes.outputs.auth == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
       service: auth-service
@@ -91,8 +92,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-orders:
-    if: ${{ needs.changes.outputs.orders == 'true' }}
     needs: changes
+    if: ${{ needs.changes.outputs.orders == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
       service: orders-service
@@ -101,8 +102,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-payment:
-    if: ${{ needs.changes.outputs.payment == 'true' }}
     needs: changes
+    if: ${{ needs.changes.outputs.payment == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
       service: payment-service
@@ -111,8 +112,8 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   build-products:
-    if: ${{ needs.changes.outputs.products == 'true' }}
     needs: changes
+    if: ${{ needs.changes.outputs.products == 'true' }}
     uses: ./.github/workflows/build-service.yml
     with:
       service: products-service
@@ -120,10 +121,11 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+  # 3️⃣ Update K8s only if any service built
   update-k8s:
-    needs: [build-nextjs, build-auth, build-orders, build-payment, build-products]
+    needs: changes
+    if: ${{ needs.changes.outputs.any-build == 'true' }}
     runs-on: ubuntu-latest
-    if: needs.changes.outputs.any-build == 'true'   # Only runs if any service built
     steps:
       - uses: actions/checkout@v4
       - name: Update deployment image tags
@@ -131,19 +133,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Updating K8s deployment files..."
-          if [ "${{ needs.build-nextjs.outcome }}" == "success" ]; then
+          if [ "${{ needs.changes.outputs.nextjs }}" == "true" ]; then
             sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
           fi
-          if [ "${{ needs.build-auth.outcome }}" == "success" ]; then
+          if [ "${{ needs.changes.outputs.auth }}" == "true" ]; then
             sed -i "s|yazilansari/auth-service:.*|yazilansari/auth-service:${{ github.sha }}|" k8s/auth-deployment.yaml
           fi
-          if [ "${{ needs.build-orders.outcome }}" == "success" ]; then
+          if [ "${{ needs.changes.outputs.orders }}" == "true" ]; then
             sed -i "s|yazilansari/orders-service:.*|yazilansari/orders-service:${{ github.sha }}|" k8s/orders-deployment.yaml
           fi
-          if [ "${{ needs.build-payment.outcome }}" == "success" ]; then
+          if [ "${{ needs.changes.outputs.payment }}" == "true" ]; then
             sed -i "s|yazilansari/payment-service:.*|yazilansari/payment-service:${{ github.sha }}|" k8s/payment-deployment.yaml
           fi
-          if [ "${{ needs.build-products.outcome }}" == "success" ]; then
+          if [ "${{ needs.changes.outputs.products }}" == "true" ]; then
             sed -i "s|yazilansari/products-service:.*|yazilansari/products-service:${{ github.sha }}|" k8s/products-deployment.yaml
           fi
 
