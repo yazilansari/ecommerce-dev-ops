@@ -10,7 +10,6 @@ on:
       - 'payment-service/**'
       - 'products-service/**'
       - 'k8s/**'
-      - '.github/workflows/**'
 
 permissions:
   contents: write
@@ -19,11 +18,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      nextjs: ${{ steps.set-outputs.outputs.nextjs }}
-      auth: ${{ steps.set-outputs.outputs.auth }}
-      orders: ${{ steps.set-outputs.outputs.orders }}
-      payment: ${{ steps.set-outputs.outputs.payment }}
-      products: ${{ steps.set-outputs.outputs.products }}
+      services: ${{ steps.set-outputs.outputs.services }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,88 +27,37 @@ jobs:
       - name: Detect changed services
         id: set-outputs
         run: |
-          NEXTJS=false
-          AUTH=false
-          ORDERS=false
-          PAYMENT=false
-          PRODUCTS=false
-
+          SERVICES=()
           for file in $(git diff --name-only HEAD~1 HEAD); do
             case "$file" in
-              nextjs-app/*) NEXTJS=true ;;
-              auth-service/*) AUTH=true ;;
-              orders-service/*) ORDERS=true ;;
-              payment-service/*) PAYMENT=true ;;
-              products-service/*) PRODUCTS=true ;;
+              nextjs-app/*) SERVICES+=("nextjs-app") ;;
+              auth-service/*) SERVICES+=("auth-service") ;;
+              orders-service/*) SERVICES+=("orders-service") ;;
+              payment-service/*) SERVICES+=("payment-service") ;;
+              products-service/*) SERVICES+=("products-service") ;;
             esac
           done
-
-          echo "nextjs=$NEXTJS" >> $GITHUB_OUTPUT
-          echo "auth=$AUTH" >> $GITHUB_OUTPUT
-          echo "orders=$ORDERS" >> $GITHUB_OUTPUT
-          echo "payment=$PAYMENT" >> $GITHUB_OUTPUT
-          echo "products=$PRODUCTS" >> $GITHUB_OUTPUT
+          # Remove duplicates and convert to JSON array for matrix
+          UNIQUE_SERVICES=$(echo "${SERVICES[@]}" | tr ' ' '\n' | sort -u | jq -R . | jq -s .)
+          echo "services=$UNIQUE_SERVICES" >> $GITHUB_OUTPUT
 
       - name: Debug changed services
         run: |
-          echo "NextJS changed: ${{ steps.set-outputs.outputs.nextjs }}"
-          echo "Auth changed: ${{ steps.set-outputs.outputs.auth }}"
-          echo "Orders changed: ${{ steps.set-outputs.outputs.orders }}"
-          echo "Payment changed: ${{ steps.set-outputs.outputs.payment }}"
-          echo "Products changed: ${{ steps.set-outputs.outputs.products }}"
+          echo "Changed services: ${{ steps.set-outputs.outputs.services }}"
 
-  build-nextjs:
-    if: ${{ needs.changes.outputs.nextjs == 'true' }}
+  build-services:
     needs: changes
+    if: ${{ needs.changes.outputs.services != '[]' }}
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.changes.outputs.services) }}
     uses: ./.github/workflows/build-service.yml
     with:
-      service: nextjs-app
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-auth:
-    if: ${{ needs.changes.outputs.auth == 'true' }}
-    needs: changes
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: auth-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-orders:
-    if: ${{ needs.changes.outputs.orders == 'true' }}
-    needs: changes
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: orders-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-payment:
-    if: ${{ needs.changes.outputs.payment == 'true' }}
-    needs: changes
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: payment-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-products:
-    if: ${{ needs.changes.outputs.products == 'true' }}
-    needs: changes
-    uses: ./.github/workflows/build-service.yml
-    with:
-      service: products-service
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      service: ${{ matrix.service }}
+    secrets: inherit
 
   update-k8s:
-    needs: [build-nextjs, build-auth, build-orders, build-payment, build-products]
+    needs: [build-services]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -123,21 +67,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Updating K8s deployment files..."
-          if [ "${{ needs.build-nextjs.result }}" == "success" ]; then
-            sed -i "s|yazilansari/nextjs-app:.*|yazilansari/nextjs-app:${{ github.sha }}|" k8s/nextjs-deployment.yaml
-          fi
-          if [ "${{ needs.build-auth.result }}" == "success" ]; then
-            sed -i "s|yazilansari/auth-service:.*|yazilansari/auth-service:${{ github.sha }}|" k8s/auth-deployment.yaml
-          fi
-          if [ "${{ needs.build-orders.result }}" == "success" ]; then
-            sed -i "s|yazilansari/orders-service:.*|yazilansari/orders-service:${{ github.sha }}|" k8s/orders-deployment.yaml
-          fi
-          if [ "${{ needs.build-payment.result }}" == "success" ]; then
-            sed -i "s|yazilansari/payment-service:.*|yazilansari/payment-service:${{ github.sha }}|" k8s/payment-deployment.yaml
-          fi
-          if [ "${{ needs.build-products.result }}" == "success" ]; then
-            sed -i "s|yazilansari/products-service:.*|yazilansari/products-service:${{ github.sha }}|" k8s/products-deployment.yaml
-          fi
+          SERVICES=(${needs.changes.outputs.services//[\[\]\",]/ })
+          for service in "${SERVICES[@]}"; do
+            if [ -n "$service" ]; then
+              sed -i "s|yazilansari/$service:.*|yazilansari/$service:${{ github.sha }}|" k8s/${service}-deployment.yaml
+            fi
+          done
 
           git config --global user.name 'Yazil Ansari'
           git config --global user.email 'yazilansari03@gmail.com'
