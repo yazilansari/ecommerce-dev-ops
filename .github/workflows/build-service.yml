@@ -23,39 +23,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'  # Enable npm cache for global npm cache directory
-          # Only include existing lock files to avoid path resolution errors
-          cache-dependency-path: |
-            ${{ inputs.service }}/package-lock.json
-            ${{ inputs.service }}/yarn.lock
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            ${{ inputs.service }}/node_modules
-            ${{ inputs.service }}/.next/cache  # Cache Next.js build cache
-          key: ${{ runner.os }}-node-modules-${{ inputs.service }}-${{ hashFiles('${{ inputs.service }}/package-lock.json', '${{ inputs.service }}/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-${{ inputs.service }}-
-
-      - name: Check lock file and install dependencies
+      - name: Install dependencies & run tests
         run: |
           cd ${{ inputs.service }}
-          if [ -f yarn.lock ]; then
-            echo "Using Yarn for installation"
-            yarn install --frozen-lockfile
-            yarn test
-          elif [ -f package-lock.json ]; then
-            echo "Using npm for installation"
-            npm ci
-            npm test
-          else
-            echo "No lock file found, running npm install"
-            npm install
-            npm test
-          fi
+          npm install
+          npm test
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
