@@ -23,4 +23,4 @@ app.post('/orders', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Orders service running on port 3000'));
+app.listen(3000, () => console.log('Orders service running on Port 3000'));
