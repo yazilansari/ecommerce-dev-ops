@@ -41,7 +41,7 @@ jobs:
           if [ ${#SERVICES[@]} -eq 0 ]; then
             UNIQUE_SERVICES="[]"
           else
-            UNIQUE_SERVICES=$(printf '%s\n' "${SERVICES[@]}" | sort -u | jq -R . | jq -s '.')
+            UNIQUE_SERVICES=$(printf '%s\n' "${SERVICES[@]}" | sort -u | jq -s -R 'split("\n") | map(select(. != ""))')
           fi
           echo "services=$UNIQUE_SERVICES" >> $GITHUB_OUTPUT
 
