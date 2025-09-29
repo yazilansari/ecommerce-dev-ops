@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: products
-        image: yazilansari/products-service:4947cf8fbcbba8894292b8bda7e37464887685b5
+        image: yazilansari/products-service:9967eaf77c97facd1b044115735be3a7e2e71189
         ports:
         - containerPort: 3000
         imagePullPolicy: Always
