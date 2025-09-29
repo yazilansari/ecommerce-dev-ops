@@ -43,7 +43,11 @@ jobs:
           if [ ${#SERVICES[@]} -eq 0 ]; then
             UNIQUE_SERVICES="[]"
           else
-            UNIQUE_SERVICES=$(printf '%s\n' "${SERVICES[@]}" | sort -u | jq -n '[inputs | select(. != "")]')
+            # Save unique services to a temporary file for debugging
+            printf '%s\n' "${SERVICES[@]}" | sort -u > services.txt
+            echo "Unique services file content:" >> $GITHUB_STEP_SUMMARY
+            cat services.txt >> $GITHUB_STEP_SUMMARY
+            UNIQUE_SERVICES=$(jq -n --arg services "$(cat services.txt)" '[($services | split("\n") | map(select(. != "")))]')
           fi
           # Debug JSON output
           echo "JSON services output: $UNIQUE_SERVICES" >> $GITHUB_STEP_SUMMARY
