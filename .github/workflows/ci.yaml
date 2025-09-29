@@ -47,7 +47,7 @@ jobs:
             printf '%s\n' "${SERVICES[@]}" | sort -u > services.txt
             echo "Unique services file content:" >> $GITHUB_STEP_SUMMARY
             cat services.txt >> $GITHUB_STEP_SUMMARY
-            UNIQUE_SERVICES=$(jq -n --arg services "$(cat services.txt)" '[($services | split("\n") | map(select(. != "")))]')
+            UNIQUE_SERVICES=$(jq -n --arg services "$(cat services.txt)" '$services | split("\n") | map(select(. != ""))')
           fi
           # Debug JSON output
           echo "JSON services output: $UNIQUE_SERVICES" >> $GITHUB_STEP_SUMMARY
