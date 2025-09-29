@@ -23,23 +23,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'  # Enable npm cache for the global npm cache directory
-          cache-dependency-path: ${{ inputs.service }}/package-lock.json
+          cache: 'npm'  # Enable npm cache for global npm cache directory
+          cache-dependency-path: |
+            ${{ inputs.service }}/package-lock.json
+            ${{ inputs.service }}/yarn.lock  # Include yarn.lock as fallback
 
       - name: Cache node_modules
         uses: actions/cache@v4
         id: cache-node-modules
         with:
           path: ${{ inputs.service }}/node_modules
-          key: ${{ runner.os }}-node-modules-${{ inputs.service }}-${{ hashFiles('${{ inputs.service }}/package-lock.json') }}
+          key: ${{ runner.os }}-node-modules-${{ inputs.service }}-${{ hashFiles('${{ inputs.service }}/package-lock.json', '${{ inputs.service }}/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-${{ inputs.service }}-
 
       - name: Install dependencies & run tests
         run: |
           cd ${{ inputs.service }}
-          npm install
-          npm test
+          if [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+            yarn test
+          else
+            npm ci
+            npm test
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
