@@ -38,7 +38,11 @@ jobs:
             esac
           done
           # Remove duplicates and convert to JSON array for matrix
-          UNIQUE_SERVICES=$(printf '%s\n' "${SERVICES[@]}" | sort -u | jq -R '[.]' | jq -s 'flatten(1)')
+          if [ ${#SERVICES[@]} -eq 0 ]; then
+            UNIQUE_SERVICES="[]"
+          else
+            UNIQUE_SERVICES=$(printf '%s\n' "${SERVICES[@]}" | sort -u | jq -R . | jq -s '.')
+          fi
           echo "services=$UNIQUE_SERVICES" >> $GITHUB_OUTPUT
 
       - name: Debug changed services
