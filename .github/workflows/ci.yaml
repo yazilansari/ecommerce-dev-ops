@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history required for accurate diff
+          fetch-depth: 0  # Full history required for accurate diff check
 
       - name: Install jq
         run: sudo apt update && sudo apt install jq -y
