@@ -19,7 +19,7 @@ COPY package*.json ./
 RUN npm install --production
 
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/next.config.js ./
+# COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/public ./public  # If you have a public folder; adjust as needed
 
 EXPOSE 3000
