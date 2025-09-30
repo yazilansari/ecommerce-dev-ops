@@ -1,24 +1,27 @@
-# Use the official Node.js 20 image as the base
-FROM node:18
+FROM node:18 AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
 COPY package*.json ./
 
-# Install dependencies
-#RUN npm install
+RUN npm install
 
-RUN npm install && \
-    chmod +x node_modules/.bin/next
-
-# Copy the rest of the application code
 COPY . .
 
 RUN npm run build
 
-#CMD ["/bin/bash"]
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install --production
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public  # If you have a public folder; adjust as needed
 
 EXPOSE 3000
+
 CMD ["npm", "run", "start"]

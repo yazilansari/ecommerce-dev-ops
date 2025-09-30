@@ -24,14 +24,23 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Cache npm packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-global-${{ inputs.service }}-${{ hashFiles(format('{0}/package-lock.json', inputs.service)) }}
+          restore-keys: ${{ runner.os }}-npm-global-${{ inputs.service }}-
+
       - name: Cache node modules
         uses: actions/cache@v4
+        id: npm-cache
         with:
           path: ${{ inputs.service }}/node_modules
           key: ${{ runner.os }}-npm-${{ inputs.service }}-${{ hashFiles(format('{0}/package.json', inputs.service), format('{0}/package-lock.json', inputs.service)) }}
           restore-keys: ${{ runner.os }}-npm-${{ inputs.service }}-
 
       - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
         run: cd ${{ inputs.service }} && npm install
 
       - name: Run tests
@@ -50,11 +59,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./${{ inputs.service }}
-          # load: true
+          load: true
           push: false
           tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
-          cache-from: type=registry,ref=yazilansari/${{ inputs.service }}-cache:latest
-          cache-to: type=registry,ref=yazilansari/${{ inputs.service }}-cache:latest,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.28.0
@@ -65,5 +74,5 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
-      # - name: Push Docker image
-      #   run: docker push yazilansari/${{ inputs.service }}:${{ github.sha }}
+      - name: Push Docker image
+        run: docker push yazilansari/${{ inputs.service }}:${{ github.sha }}
