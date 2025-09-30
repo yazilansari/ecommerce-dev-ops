@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "NextJSS Ecommerce App",
+  title: "NextJS Ecommerce App",
   description: "Deployed by Yazil Ansari",
 };
 

@@ -50,11 +50,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./${{ inputs.service }}
-          load: true
+          # load: true
           push: false
           tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=yazilansari/${{ inputs.service }}-cache:latest
+          cache-to: type=registry,ref=yazilansari/${{ inputs.service }}-cache:latest,mode=max
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.28.0
@@ -65,5 +65,5 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
-      - name: Push Docker image
-        run: docker push yazilansari/${{ inputs.service }}:${{ github.sha }}
+      # - name: Push Docker image
+      #   run: docker push yazilansari/${{ inputs.service }}:${{ github.sha }}
