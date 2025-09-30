@@ -13,7 +13,7 @@ on:
         required: true
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,11 +24,20 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install dependencies & run tests
-        run: |
-          cd ${{ inputs.service }}
-          npm install
-          npm test
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: ${{ inputs.service }}/node_modules
+          key: ${{ runner.os }}-npm-${{ inputs.service }}-${{ hashFiles(format('{0}/package-lock.json', inputs.service)) }}
+          restore-keys: ${{ runner.os }}-npm-${{ inputs.service }}-
+
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: cd ${{ inputs.service }} && npm ci
+
+      - name: Run tests
+        run: cd ${{ inputs.service }} && npm test
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -39,19 +48,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build and load Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./${{ inputs.service }}
+          load: true
           push: false
           tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
-          outputs: type=docker,dest=/tmp/${{ inputs.service }}.tar
-
-      - name: Load Docker image
-        run: docker load -i /tmp/${{ inputs.service }}.tar || echo "Failed to load image"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: yazilansari/${{ inputs.service }}:${{ github.sha }}
           format: table
@@ -60,8 +68,4 @@ jobs:
           ignore-unfixed: true
 
       - name: Push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./${{ inputs.service }}
-          push: true
-          tags: yazilansari/${{ inputs.service }}:${{ github.sha }}
+        run: docker push yazilansari/${{ inputs.service }}:${{ github.sha }}
