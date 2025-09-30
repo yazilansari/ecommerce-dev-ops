@@ -32,7 +32,7 @@ jobs:
         run: |
           CHANGED=($(git diff --name-only HEAD~1 HEAD | awk -F/ '{if (NF > 1) print $1}' | sort -u | grep -E '^(nextjs-app|.*-service)$'))
           
-          changed_json=$(printf '%s\n' "${CHANGED[@]}" | jq -R . | jq -s .)
+          changed_json=$(printf '%s\n' "${CHANGED[@]}" | jq -R . | jq -c -s .)
           echo "changed_services=$changed_json" >> $GITHUB_OUTPUT
 
       - name: Debug changed services
