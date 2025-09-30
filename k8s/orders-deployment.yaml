@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: orders
-        image: yazilansari/orders-service:9e05fb0b84cde78638ca7259b32259acc216b24c
+        image: yazilansari/orders-service:219c750d659e9114b1229e2cc314c685e48a8c9f
         ports:
         - containerPort: 3000
         imagePullPolicy: Always
