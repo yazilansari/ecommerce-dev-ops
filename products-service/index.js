@@ -48,4 +48,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error', details: err.message });
 });
 
-app.listen(3000, () => console.log('Products Service Running on Port 30000'));
+app.listen(3000, () => console.log('Products Service Running on Port 3000'));
